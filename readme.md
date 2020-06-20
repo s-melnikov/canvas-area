@@ -24,10 +24,31 @@ It allows *zoom*, *pan* and *resize* interactions.
 * `resizable`: one of [`'none'`, `'horizontal'`, `'vertical'`, `'both'`].
 * `cartesian`: `true` or `false`
 
-
 ## Example please ...
 
 [try it out ...](https://goessner.github.io/canvas-area/canvas-area)
+
+## Multiple Canvases
+
+Multiple canvases are mostly used as layers in practice. It is up to you, how you organize, what to draw on which layer. Often there is a *background* layer holding static graphics, which does not need to be updated frequently. In contrast to that there might be a *dynamic* layer holding animated graphics for instance. There also might be an *interactivity* layer, containing editable geometry.
+
+Separating low frequently updated geometry from high frequently updated geometry by different layers should result in a performance gain.
+
+Please note, when using multiple canvases - and stacking them on top of each other:
+
+* For every canvas element, perhaps except the first one, use `position:absolute;` style.
+* Stacking level can be made explicite using `z-index: 5;`  style.
+* `canvas` elements are transparent by default. So avoid giving them background colors.
+* `canvas-area` is managing the *resize*  of its `canvas` children, but not their `redraw`.
+*  `canvas-area` is managing the *view* parameters for *pan* and *zoom*, but does not apply those values to the `canvas` contexes. Do that by yourself while redrawing or using the `on('view',...)` handler.
+
+Example:
+```html
+<canvas-area id="ca" width="401" height="301">
+    <canvas id="c1" style="position:absolute; z-index:1;"></canvas>
+    <canvas id="c2" style="position:absolute; z-index:2;"></canvas>
+</canvas-area>
+```
 
 ## Show me the scripting API ...
 
@@ -41,6 +62,7 @@ It allows *zoom*, *pan* and *resize* interactions.
 |`cursor`|String| simple interface to CSS cursor attribute. | `'auto'` |
 |`view`|`{x,y,scl}`| origin location `x,y` in `px` and scaling factor `scl` | `{0,0,1}` |
 |`cartesian`|Boolean| `true`: `y`-axis pointing up, <br>`false`: `y`-axis pointing down  | `false` |
+|`observable`|Object| initially (lazily) set external observable object once.  | - |
 
 ... methods ...
 
@@ -50,7 +72,7 @@ It allows *zoom*, *pan* and *resize* interactions.
 |`zoom({x,y,scl})`|`x`: x-center<br>`y`: y-center<br>`scl`: factor | `undefined`| zoom about point `{x,y}` by factor `scl`. Modifies  `view` property  |
 |`pntToUsr({x,y})`| point | point | transform argument point (device coordinates) to result point (user coordinates) with respect to `view` property  |
 |`notify(key,value)`|`key`:&nbsp;event&nbsp;type<br>`value`:&nbsp;event&nbsp;data |`undefined`| notify observers of event type `key` about event `value`|
-|`observe(key,handler)`|`key`:&nbsp;event&nbsp;type<br>`handler`:&nbsp;event&nbsp;handler|`undefined`| let `handler` get invoked with event type `key`. |
+|`on(key,handler)`|`key`:&nbsp;event&nbsp;type<br>`handler`:&nbsp;event&nbsp;handler|`this`| register `handler` with event type `key`. |
 
 ... and events, which can be observed via `observe` method.
 
@@ -85,21 +107,30 @@ Use following link for `canvas-area.js`.
 ## FAQ
 
 * __Does not work properly with Mobile Device X and Touch Screen Y ?__
-  * Desktop browsers only are addressed at current.
-  * I'm unsure, if and when to add *touch* and *pen* events.
+  * Desktop browsers only are addressed primarily at current.
+  * Implementation of touch events is experimental (*pan* works with touch and *resize* also using a *pen* now).
+  * Issues with Microsoft Edge.
 
 * __Can you implement feature X and possibly feature Y ?__
   * `canvas-area` serves my personal needs very well as it is.
   * So ... no, I won't.
   * Please go ahead and implement it by yourself.
   * If you think, your enhancement is of common interest, you are very welcome, to send me a pull request.
-  
 
 ## Changelog
 
+###  [0.4.7] on January 28, 2018
+* `observable` setter (only) for possibly injecting an external observable object. So enable delegating observer management to 'app' object.
+
+###  [0.4.5] on January 19, 2018
+* chainable method `on(key,handler)` added.
+* method `observe(key,handler)` marked as deprecated. Use `on(key,handler)` instead.
+* renamed event property `buttons` to `btn` in [`drag`,`pointer`,`buttondown`,`buttonup`,`pointerenter`,`pointerleave`] event.
+* necessary styles `display: block; overflow: hidden;` automatically added as inline style while constructing.
+* touch events experimentally implemented.
+
 ###  [0.4.0] on January 06, 2018
 * Initial release.
-
 
 ## License
 
